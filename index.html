@@ -47,7 +47,7 @@
       }
       const formData = new FormData()
       formData.append('file', file)
-      axios.post('http://www.sakebow.cn:40080/upload', formData, {
+      axios.post('/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       .then(function (response) {
@@ -64,7 +64,7 @@
       const task_info = document.getElementById('status')
       const convertNum = document.getElementById('convert_num')
       const interval = setInterval(() => {
-        fetch(`http://www.sakebow.cn:40080/status/${taskId}`)
+        fetch(`/api/status/${taskId}`)
           .then(response => response.json())
           .then(data => {
             let status = data.state; // 假设后端返回的状态存储在 status 字段

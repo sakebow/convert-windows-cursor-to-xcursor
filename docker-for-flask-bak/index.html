@@ -35,7 +35,7 @@
       }
       const formData = new FormData()
       formData.append('file', file)
-      axios.post('https://www.sakebow.cn/api/upload', formData, {
+      axios.post('/api/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
       .then(function (response) {
@@ -52,7 +52,7 @@
       const task_info = document.getElementById('status')
       const convertNum = document.getElementById('convert_num')
       const interval = setInterval(() => {
-        fetch(`https://www.sakebow.cn/api/status/${taskId}`)
+        fetch(`/api/status/${taskId}`)
           .then(response => response.json())
           .then(data => {
             let status = data.state; // 假设后端返回的状态存储在 status 字段
@@ -77,7 +77,7 @@
     // 假设 data 包含了文件名
     function updateDownloadLink(filename) {
       const downloadLink = document.createElement('a');
-      downloadLink.href = `https://www.sakebow.cn/${filename}.tar.gz`;
+      downloadLink.href = `http://download.sakebow.cn/${filename}.tar.gz`;
       downloadLink.innerText = '下载文件';
       downloadLink.download = filename; // 这将提示浏览器下载而不是导航      
       // 将下载链接添加到页面上某个元素中
