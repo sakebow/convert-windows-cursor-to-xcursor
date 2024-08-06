@@ -3,3 +3,4 @@ flask==3.0.2
 Flask-Cors==4.0.0
 gunicorn==21.2.0
 redis==5.0.1
+PyYAML==6.0.1

@@ -1,9 +1,9 @@
 import os
+import yaml
 from datetime import datetime, timedelta
 from subprocess import Popen, PIPE
 
 from celery import Celery
-from celery.schedules import crontab
 
 from flask_cors import CORS
 from flask import Flask, request, jsonify
@@ -11,9 +11,14 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 CORS(app)
 
+with open('docker-for-flask-bak/config.my.yml', 'r') as ymlfile:
+  cfg = yaml.safe_load(ymlfile)
+
+redis_config = cfg['redis']
+
 # 配置 Celery
-app.config['CELERY_BROKER_URL'] = 'redis://:@Ljx62149079@www.sakebow.cn:6379/0'
-app.config['CELERY_RESULT_BACKEND'] = 'redis://:@Ljx62149079@www.sakebow.cn:6379/0'
+app.config['CELERY_BROKER_URL'] = f'redis://:{redis_config['password']}@{redis_config['host']}:{redis_config['port']}/{redis_config['database']}'
+app.config['CELERY_RESULT_BACKEND'] = f'redis://:{redis_config['password']}@{redis_config['host']}:{redis_config['port']}/{redis_config['database']}'
 
 celery = Celery(app.name, broker=app.config['CELERY_BROKER_URL'])
 celery.conf.update(app.config)
@@ -26,15 +31,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 def allowed_file(filename):
   return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'curxptheme'}
 
-@celery.task
-def clear_old_files():
-  cutoff_time = datetime.now() - timedelta(hours = 1)
-  for filename in os.listdir(UPLOAD_FOLDER):
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    file_mtime = datetime.fromtimestamp(os.path.getmtime(file_path))
-    if file_mtime < cutoff_time:
-      os.remove(file_path)
-
 @celery.task(bind=True)
 def process_file(self, input_filename):
   # 构建 Perl 脚本的命令行
@@ -43,7 +39,7 @@ def process_file(self, input_filename):
   process = Popen(command, stdout=PIPE, stderr=PIPE)
   stdout, stderr = process.communicate()
   if process.returncode == 0:
-    # 假设脚本输出的最后一行是输出文件名
+    # 输出的最后一行是输出文件名
     output_filename = stdout.decode().strip().split('\n')[-1]
     return {'status': 'success', 'output_file': output_filename}
   else:
@@ -82,16 +78,5 @@ def get_status(task_id):
     }
   return jsonify(response)
 
-# 在 app.config 中添加定时任务配置
-app.config['CELERYBEAT_SCHEDULE'] = {
-  'clear_old_files': {
-    'task': 'app.clear_old_files',
-    'schedule': crontab(hour=0, minute=0),  # 每天午夜执行
-  },
-}
-
-celery.conf.update(app.config)
-'''
 if __name__ == '__main__':
   app.run(port=40080)
-'''

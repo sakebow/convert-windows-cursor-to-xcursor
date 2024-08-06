@@ -8,6 +8,7 @@ WORKDIR /usr/local/src/
 COPY 104659-sd2xc-2.5.pl .
 COPY app.py .
 COPY index.html .
+COPY config.yml .
 
 RUN rm /etc/redis/redis.conf
 COPY redis.conf /etc/redis/

@@ -1,0 +1,5 @@
+# config files
+docker-for-flask-bak/*.my.*
+
+# folders
+uploads/
